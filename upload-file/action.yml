@@ -1,0 +1,32 @@
+name: "Upload file"
+description: "Upload a file to Matrix"
+inputs:
+  url:
+    description: "Matrix url. Should not include /rest/api/1"
+    required: true
+  token:
+    description: "Matrix API token"
+    required: false
+  project:
+    description: "Project shortcode"
+    required: true
+  item:
+    description: "The project item shortCode"
+    required: true
+  fieldId:
+    description: "The fieldId of the item where the uploaded file will be stored"
+    required: true
+  file:
+    description: "The file location"
+    required: true
+  reason:
+    description: "The reason an upload is made"
+    required: true
+    default: github
+  fileName:
+    description: "The fileName under which to store the file"
+    required: true
+
+runs:
+  using: "node12"
+  main: "upload-file.js"
