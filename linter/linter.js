@@ -162,9 +162,9 @@ async function lintRichText(project, item, richText) {
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
       if (name === "img") {
-        images.push(name);
+        images.push(attributes);
       } else if (name === "a") {
-        anchors.push(name);
+        anchors.push(attributes);
       }
     },
     ontext(text) {},
