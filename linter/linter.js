@@ -90,7 +90,7 @@ function getItemsFromProjectTree(item) {
   }
 
   if (item.folder !== undefined) {
-    const children = getItemsFromTree(folder);
+    const children = getItemsFromProjectTree(folder);
     for (const c of children) {
       result.push(c);
     }
@@ -98,7 +98,7 @@ function getItemsFromProjectTree(item) {
 
   if (item.itemList && Array.isArray(item.itemList)) {
     for (const l of item.itemList) {
-      const children = getItemsFromTree(l);
+      const children = getItemsFromProjectTree(l);
       for (const c of children) {
         result.push(c);
       }
