@@ -115,15 +115,12 @@ async function run() {
     const project = core.getInput("project");
 
     const projectInfo = await getProject(url, token, project);
-    //console.log("project info", projectInfo);
     const projectTree = await getProjectTree(url, token, project);
-    //console.log("project tree", projectTree);
 
     if (projectTree && Array.isArray(projectTree) && projectInfo) {
       for (const projectLeaf of projectTree) {
         const items = getItemsFromProjectTree(projectLeaf);
         for (const item of items) {
-          //console.log("processing item", item);
           await lintItem(url, token, project, item, projectInfo);
         }
       }
@@ -133,14 +130,14 @@ async function run() {
   }
 }
 
-async function lintRichText(richText) {
+async function lintRichText(project, item, richText) {
   if (richText === undefined || richText === "") {
     return;
   }
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
-      core.info(`html onopentag ${name} ${attributes}`);
+      core.info(`html onopentag ${name} ${JSON.stringify(attributes)}`);
     },
     ontext(text) {
       core.info(`html ontext ${text}`);
@@ -169,18 +166,23 @@ async function lintItem(url, token, project, item, projectInfo) {
     Array.isArray(projectItem.fieldValList.fieldVal)
   ) {
     for (const field of projectItem.fieldValList.fieldVal) {
-      const fieldName = field.fieldName;
-      const fieldType = field.fieldType;
-      const value = field.value;
-
-      if (
-        fieldType === "richtext" &&
-        value !== undefined &&
-        typeof value === "string"
-      ) {
-        await lintRichText(value);
-      }
+      await lintField(project, itemRef, field);
     }
+  }
+}
+
+async function lintField(project, itemRef, field) {
+  const fieldType = field.fieldType;
+  const value = field.value;
+
+  if (
+    fieldType === "richtext" &&
+    value !== undefined &&
+    typeof value === "string"
+  ) {
+    await lintRichText(project, itemRef, value);
+  } else {
+    core.debug(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
   }
 }
 
