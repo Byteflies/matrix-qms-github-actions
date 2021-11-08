@@ -255,7 +255,7 @@ async function lintField(project, itemRef, field, projectInfo) {
   ) {
     await lintRichText(project, itemRef, value);
   } else {
-    core.info(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
+    //core.info(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
   }
 }
 
