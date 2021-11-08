@@ -1,5 +1,4 @@
 const core = require("@actions/core");
-const FormData = require("form-data");
 const axios = require("axios");
 const htmlparser2 = require("htmlparser2");
 
@@ -151,18 +150,20 @@ async function lintItem(url, token, project, item, projectInfo) {
 
   console.log(id, title, type);
 
-  const item = await getProjectItem(url, token, project, id);
-  console.log(item);
+  const projectItem = await getProjectItem(url, token, project, id);
+  console.log(projectItem);
   if (
-    item.fieldValList &&
-    item.fieldValList.fieldVal &&
-    Array.isArray(item.fieldValList.fieldVal)
+    projectItem.fieldValList &&
+    projectItem.fieldValList.fieldVal &&
+    Array.isArray(projectItem.fieldValList.fieldVal)
   ) {
-    for (const field of item.fieldValList.fieldVal) {
+    for (const field of projectItem.fieldValList.fieldVal) {
       const fieldName = field.fieldName;
       const fieldType = field.fieldType;
       const value = field.value;
       const id = field.id;
+
+      console.log(fieldName, fieldType, id);
 
       if (
         value &&
