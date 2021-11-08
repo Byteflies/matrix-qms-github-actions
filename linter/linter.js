@@ -183,8 +183,10 @@ async function lintRichText(project, item, richText) {
       }
     },
     ontext(text) {
+      core.info(`${project} ${item}: ${text}`);
+
       const matches = reg.exec(text);
-      if (matches) {
+      if (matches !== undefined && matches !== null) {
         for (const match of matches) {
           const item = match.trim();
           if (item.length > 0) {
@@ -218,8 +220,8 @@ async function lintRichText(project, item, richText) {
 async function lintItem(url, token, project, item, projectInfo) {
   if (item === undefined || item.itemRef === undefined) {
     return;
-  // } else if (item.isFolder === undefined || item.isFolder === 1) {
-  //   return;
+    // } else if (item.isFolder === undefined || item.isFolder === 1) {
+    //   return;
   }
 
   const itemRef = item.itemRef;
@@ -256,7 +258,7 @@ async function lintField(project, itemRef, field) {
   ) {
     await lintRichText(project, itemRef, value);
   } else {
-    core.debug(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
+    core.info(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
   }
 }
 
