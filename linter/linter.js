@@ -149,6 +149,7 @@ async function validateUrl(project, item, url) {
     };
 
     const instance = axios.create(axiosConfig);
+    core.info(url);
     const resp = await instance.get(url);
     return resp.data;
   } catch (error) {
