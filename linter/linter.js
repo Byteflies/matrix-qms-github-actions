@@ -142,6 +142,9 @@ async function validateUrl(project, item, url) {
               Authorization: `Token ${token}`,
             }
           : undefined,
+      validateStatus: function (status) {
+        return status === 200 || status === 404;
+      },
     };
 
     const instance = axios.create(axiosConfig);
