@@ -130,6 +130,12 @@ async function run() {
   }
 }
 
+function validateItem(project, item, itemRef) {
+  core.info(
+    `Internal item ref not validated yet: ${project} ${item}: ${itemRef}`
+  );
+}
+
 async function validateUrl(project, item, url) {
   const baseURL = core.getInput("url");
   const token = core.getInput("token");
@@ -163,7 +169,10 @@ async function lintRichText(project, item, richText) {
 
   const images = [];
   const anchors = [];
-  const allText = [];
+  const allItems = [];
+  const reg = new RegExp(
+    "(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)"
+  ).compile();
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
@@ -174,8 +183,14 @@ async function lintRichText(project, item, richText) {
       }
     },
     ontext(text) {
-      if (text.indexOf("#") !== -1) {
-        allText.push(text);
+      const matches = reg.exec(text);
+      if (matches) {
+        for (const match of matches) {
+          const item = match.trim();
+          if (item.length > 0) {
+            allItems.push(item);
+          }
+        }
       }
     },
     onclosetag(tagname) {},
@@ -188,14 +203,15 @@ async function lintRichText(project, item, richText) {
       await validateUrl(project, item, image.src);
     }
   }
+
   for (const anchor of anchors) {
     if (anchor.href !== undefined && typeof anchor.href === "string") {
       await validateUrl(project, item, anchor.href);
     }
   }
 
-  for (const text of allText) {
-    core.info(`Internal link not validated yet: ${text}`);
+  for (const itemRef of allItems) {
+    validateItem(project, item, itemRef);
   }
 }
 
