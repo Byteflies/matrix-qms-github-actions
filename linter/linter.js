@@ -168,11 +168,7 @@ async function lintRichText(richText) {
 }
 
 async function lintItem(url, token, project, item, projectInfo) {
-  if (
-    item === undefined ||
-    item.itemRef === undefined ||
-    item.type === undefined
-  ) {
+  if (item === undefined || item.itemRef === undefined) {
     console.log("ignoring item", project, item);
     return;
   } else if (item.isFolder === undefined || item.isFolder === 1) {
