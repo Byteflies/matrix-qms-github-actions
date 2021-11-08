@@ -152,15 +152,15 @@ async function lintItem(url, token, project, item, projectInfo) {
     return;
   }
 
+  console.log("linting item", project, item);
+
   const id = item.id;
   const title = item.title;
   const type = item.type;
 
-  console.log(id, title, type);
-
   if (id !== undefined) {
     const projectItem = await getProjectItem(url, token, project, id);
-    console.log("item", projectItem);
+    console.log("item", project, item, projectItem);
     if (
       projectItem.fieldValList !== undefined &&
       projectItem.fieldValList.fieldVal !== undefined &&
