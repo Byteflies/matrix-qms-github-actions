@@ -20,7 +20,7 @@ async function getProject(baseURL, token, project) {
 
     const instance = axios.create(axiosConfig);
 
-    core.info(`GET ${baseURL}/rest/1/${project}`);
+    core.debug(`GET ${baseURL}/rest/1/${project}`);
 
     const resp = await instance.get(`${project}`);
     return resp.data;
@@ -46,7 +46,7 @@ async function getProjectTree(baseURL, token, project) {
 
     const instance = axios.create(axiosConfig);
 
-    core.info(`GET ${baseURL}/rest/1/${project}/tree`);
+    core.debug(`GET ${baseURL}/rest/1/${project}/tree`);
 
     const resp = await instance.get(`${project}/tree`);
     return resp.data;
@@ -73,7 +73,7 @@ async function getProjectItem(baseURL, token, project, item) {
 
     const instance = axios.create(axiosConfig);
 
-    core.info(`GET ${baseURL}/rest/1/${project}/item/${item}`);
+    core.debug(`GET ${baseURL}/rest/1/${project}/item/${item}`);
 
     const resp = await instance.get(`${project}/item/${item}`);
     return resp.data;
@@ -140,31 +140,13 @@ async function lintRichText(richText) {
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
-      console.log("onopentag", name, attributes);
-      // if (name === "script" && attributes.type === "text/javascript") {
-      //   console.log("onopentag", name, attributes);
-      // }
+      core.info("html onopentag", name, attributes);
     },
     ontext(text) {
-      /*
-       * Fires whenever a section of text was processed.
-       *
-       * Note that this can fire at any point within text and you might
-       * have to stich together multiple pieces.
-       */
-      console.log("ontext", text);
+      core.info("html ontext", text);
     },
     onclosetag(tagname) {
-      /*
-       * Fires when a tag is closed.
-       *
-       * You can rely on this event only firing when you have received an
-       * equivalent opening tag before. Closing tags without corresponding
-       * opening tags will be ignored.
-       */
-      if (tagname === "script") {
-        console.log("onclosetag", tagname);
-      }
+      core.info("html onclosetag", tagname);
     },
   });
   parser.write(richText);
@@ -173,10 +155,8 @@ async function lintRichText(richText) {
 
 async function lintItem(url, token, project, item, projectInfo) {
   if (item === undefined || item.itemRef === undefined) {
-    console.log("ignoring item", project, item);
     return;
   } else if (item.isFolder === undefined || item.isFolder === 1) {
-    console.log("ignoring folder", project, item);
     return;
   }
 
@@ -199,18 +179,10 @@ async function lintItem(url, token, project, item, projectInfo) {
         typeof value === "string"
       ) {
         await lintRichText(value);
-      } else {
-        console.log(
-          "ignoring item field",
-          project,
-          itemRef,
-          fieldName,
-          JSON.stringify(field)
-        );
       }
     }
   } else {
-    console.log(
+    core.debug(
       "item does not have fields",
       project,
       itemRef,
