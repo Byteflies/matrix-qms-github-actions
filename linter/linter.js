@@ -180,7 +180,7 @@ async function lintItem(url, token, project, item, projectInfo) {
 
   if (itemRef !== undefined && title !== undefined) {
     const projectItem = await getProjectItem(url, token, project, itemRef);
-    console.log("item", project, itemRef, projectItem);
+
     if (
       projectItem.fieldValList !== undefined &&
       projectItem.fieldValList.fieldVal !== undefined &&
@@ -192,7 +192,7 @@ async function lintItem(url, token, project, item, projectInfo) {
         const value = field.value;
         const id = field.id;
 
-        console.log(fieldName, fieldType, id);
+        console.log("field", JSON.stringify(field));
 
         if (
           value &&
@@ -214,15 +214,17 @@ async function lintItem(url, token, project, item, projectInfo) {
           }
         }
       }
+    } else {
+      console.log("ignoring item", project, itemRef, projectItem);
     }
 
-    const children = item.children;
-    if (children && Array.isArray(children)) {
-      for (const child of children) {
-        console.log("processing child", child);
-        await lintItem(url, token, project, child, projectInfo);
-      }
-    }
+    // const children = item.children;
+    // if (children && Array.isArray(children)) {
+    //   for (const child of children) {
+    //     console.log("processing child", child);
+    //     await lintItem(url, token, project, child, projectInfo);
+    //   }
+    // }
   }
 }
 
