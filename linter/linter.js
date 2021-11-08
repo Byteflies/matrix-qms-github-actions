@@ -85,9 +85,9 @@ async function run() {
     const token = core.getInput("token");
     const project = core.getInput("project");
 
-    const projectInfo = await getProject(url, token, project, file);
+    const projectInfo = await getProject(url, token, project);
     console.log(projectInfo);
-    const projectTree = await getProjectTree(url, token, project, file);
+    const projectTree = await getProjectTree(url, token, project);
     console.log(projectTree);
 
     if (projectTree && Array.isArray(projectTree) && projectInfo) {
