@@ -169,7 +169,7 @@ async function lintRichText(project, item, richText) {
 
   const images = [];
   const anchors = [];
-  const allItems = [];
+  const itemRefs = [];
   const reg = new RegExp(
     "(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)"
   ).compile();
@@ -188,7 +188,7 @@ async function lintRichText(project, item, richText) {
         for (const match of matches) {
           const item = match.trim();
           if (item.length > 0) {
-            allItems.push(item);
+            itemRefs.push(item);
           }
         }
       }
@@ -210,7 +210,7 @@ async function lintRichText(project, item, richText) {
     }
   }
 
-  for (const itemRef of allItems) {
+  for (const itemRef of itemRefs) {
     validateItem(project, item, itemRef);
   }
 }
