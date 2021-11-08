@@ -115,15 +115,15 @@ async function run() {
     const project = core.getInput("project");
 
     const projectInfo = await getProject(url, token, project);
-    console.log("project info", projectInfo);
+    //console.log("project info", projectInfo);
     const projectTree = await getProjectTree(url, token, project);
-    console.log("project tree", projectTree);
+    //console.log("project tree", projectTree);
 
     if (projectTree && Array.isArray(projectTree) && projectInfo) {
       for (const projectLeaf of projectTree) {
         const items = getItemsFromProjectTree(projectLeaf);
         for (const item of items) {
-          console.log("processing item", item);
+          //console.log("processing item", item);
           await lintItem(url, token, project, item, projectInfo);
         }
       }
@@ -168,54 +168,57 @@ async function lintRichText(richText) {
 }
 
 async function lintItem(url, token, project, item, projectInfo) {
-  if (item === undefined) {
+  if (
+    item === undefined ||
+    item.itemRef === undefined ||
+    item.type === undefined
+  ) {
+    console.log("ignoring item", project, item);
+    return;
+  } else if (item.isFolder === undefined || item.isFolder === 1) {
+    console.log("ignoring folder", project, item);
     return;
   }
 
-  console.log("linting item", project, item);
+  console.log("linting item", project, JSON.stringify(item));
 
   const itemRef = item.itemRef;
   const title = item.title;
   const type = item.type;
 
-  if (itemRef !== undefined && title !== undefined) {
-    const projectItem = await getProjectItem(url, token, project, itemRef);
+  const projectItem = await getProjectItem(url, token, project, itemRef);
+  if (
+    projectItem.fieldValList !== undefined &&
+    projectItem.fieldValList.fieldVal !== undefined &&
+    Array.isArray(projectItem.fieldValList.fieldVal)
+  ) {
+    for (const field of projectItem.fieldValList.fieldVal) {
+      const fieldName = field.fieldName;
+      const fieldType = field.fieldType;
+      const value = field.value;
+      const id = field.id;
 
-    if (
-      projectItem.fieldValList !== undefined &&
-      projectItem.fieldValList.fieldVal !== undefined &&
-      Array.isArray(projectItem.fieldValList.fieldVal)
-    ) {
-      for (const field of projectItem.fieldValList.fieldVal) {
-        const fieldName = field.fieldName;
-        const fieldType = field.fieldType;
-        const value = field.value;
-        const id = field.id;
+      console.log("field", JSON.stringify(field));
 
-        console.log("field", JSON.stringify(field));
-
-        if (
-          value &&
-          typeof value === "string" &&
-          value.indexOf("richtext") !== -1
-        ) {
-          const v = JSON.parse(value);
-          if (v) {
-            const t = v.type;
-            const name = v.name;
-            console.log(t.name);
-            const fieldValue = v.fieldValue;
-            if (
-              typeof fieldValue === "string" &&
-              fieldValue.indexOf("<") !== -1
-            ) {
-              await lintRichText(fieldValue);
-            }
+      if (
+        value &&
+        typeof value === "string" &&
+        value.indexOf("richtext") !== -1
+      ) {
+        const v = JSON.parse(value);
+        if (v) {
+          const t = v.type;
+          const name = v.name;
+          console.log(t.name);
+          const fieldValue = v.fieldValue;
+          if (
+            typeof fieldValue === "string" &&
+            fieldValue.indexOf("<") !== -1
+          ) {
+            await lintRichText(fieldValue);
           }
         }
       }
-    } else {
-      console.log("ignoring item", project, itemRef, projectItem);
     }
 
     // const children = item.children;
