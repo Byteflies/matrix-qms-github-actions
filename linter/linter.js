@@ -140,7 +140,9 @@ function validateItem(project, item, itemRef, projectTree) {
       .filter((itemRef) => typeof itemRef === "string")
       .map((itemRef) => itemRef + "");
 
-  if (!itemRefs.includes(itemRef)) {
+  if (itemRef.indexOf("#") !== -1) {
+    core.info(`${project} ${item}: ${itemRef} not checked`);
+  } else if (!itemRefs.includes(itemRef)) {
     core.setFailed(
       `Internal item ref not found: ${project} ${item}: ${itemRef}`
     );
@@ -195,9 +197,18 @@ async function lintRichText(project, item, richText, projectTree) {
     },
     ontext(text) {
       const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/g;
+      const regex2 = /#[A-Za-z].+#/g;
+
       var matches = [];
       while ((matches = regex.exec(text)) !== null) {
         const matchTrimmed = matches[0].trim();
+        if (matchTrimmed.length > 0) {
+          itemRefs.push(matchTrimmed);
+        }
+      }
+
+      while ((matches = regex2.exec(text)) !== null) {
+        const matchTrimmed = matches[0].replace(/#/g, "").trim();
         if (matchTrimmed.length > 0) {
           itemRefs.push(matchTrimmed);
         }
