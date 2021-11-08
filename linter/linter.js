@@ -82,6 +82,32 @@ async function getProjectItem(baseURL, token, project, item) {
   }
 }
 
+function getItemsFromProjectTree(item) {
+  const result = [];
+
+  if (item.itemRef !== undefined && item.title !== undefined) {
+    result.push(item);
+  }
+
+  if (item.folder !== undefined) {
+    const children = getItemsFromTree(folder);
+    for (const c of children) {
+      result.push(c);
+    }
+  }
+
+  if (item.itemList && Array.isArray(item.itemList)) {
+    for (const l of item.itemList) {
+      const children = getItemsFromTree(l);
+      for (const c of children) {
+        result.push(c);
+      }
+    }
+  }
+
+  return result;
+}
+
 async function run() {
   try {
     const url = core.getInput("url");
@@ -95,19 +121,13 @@ async function run() {
 
     if (projectTree && Array.isArray(projectTree) && projectInfo) {
       for (const projectLeaf of projectTree) {
-        console.log("processing leaf", projectLeaf);
-        await lintItem(url, token, project, projectLeaf, projectInfo);
+        const items = getItemsFromProjectTree(projectLeaf);
+        for (const item of items) {
+          console.log("processing item", item);
+          await lintItem(url, token, project, item, projectInfo);
+        }
       }
     }
-
-    // const categoryList = project.categoryList;
-    // const categorySettingList = project.categorySettingList;
-    // if (categoryList && categorySettingList) {
-    //   const categoryExtended = categoryList.categoryExtended;
-
-    //   for (const category of categoryExtended) {
-    //   }
-    // }
   } catch (error) {
     core.setFailed(error.message);
   }
