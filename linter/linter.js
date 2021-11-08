@@ -175,7 +175,16 @@ async function lintField(project, itemRef, field) {
   const fieldType = field.fieldType;
   const value = field.value;
 
-  if (
+  if (fieldType === "dhf" && value !== undefined && typeof value === "string") {
+    const j = JSON.parse(value);
+    if (
+      j.type === "richtext" &&
+      j.fieldValue !== undefined &&
+      typeof j.fieldValue === "string"
+    ) {
+      await lintRichText(project, itemRef, j.fieldValue);
+    }
+  } else if (
     fieldType === "richtext" &&
     value !== undefined &&
     typeof value === "string"
