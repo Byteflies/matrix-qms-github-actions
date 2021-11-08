@@ -95,6 +95,7 @@ async function run() {
 
     if (projectTree && Array.isArray(projectTree) && projectInfo) {
       for (const projectLeaf of projectTree) {
+        console.log("processing leaf", projectLeaf);
         await lintItem(url, token, project, projectLeaf, projectInfo);
       }
     }
@@ -147,53 +148,60 @@ async function lintRichText(richText) {
 }
 
 async function lintItem(url, token, project, item, projectInfo) {
+  if (item === undefined) {
+    return;
+  }
+
   const id = item.id;
   const title = item.title;
   const type = item.type;
 
   console.log(id, title, type);
 
-  const projectItem = await getProjectItem(url, token, project, id);
-  console.log(projectItem);
-  if (
-    projectItem.fieldValList &&
-    projectItem.fieldValList.fieldVal &&
-    Array.isArray(projectItem.fieldValList.fieldVal)
-  ) {
-    for (const field of projectItem.fieldValList.fieldVal) {
-      const fieldName = field.fieldName;
-      const fieldType = field.fieldType;
-      const value = field.value;
-      const id = field.id;
+  if (id !== undefined) {
+    const projectItem = await getProjectItem(url, token, project, id);
+    console.log("item", projectItem);
+    if (
+      projectItem.fieldValList !== undefined &&
+      projectItem.fieldValList.fieldVal !== undefined &&
+      Array.isArray(projectItem.fieldValList.fieldVal)
+    ) {
+      for (const field of projectItem.fieldValList.fieldVal) {
+        const fieldName = field.fieldName;
+        const fieldType = field.fieldType;
+        const value = field.value;
+        const id = field.id;
 
-      console.log(fieldName, fieldType, id);
+        console.log(fieldName, fieldType, id);
 
-      if (
-        value &&
-        typeof value === "string" &&
-        value.indexOf("richtext") !== -1
-      ) {
-        const v = JSON.parse(value);
-        if (v) {
-          const t = v.type;
-          const name = v.name;
-          console.log(t.name);
-          const fieldValue = v.fieldValue;
-          if (
-            typeof fieldValue === "string" &&
-            fieldValue.indexOf("<") !== -1
-          ) {
-            await lintRichText(fieldValue);
+        if (
+          value &&
+          typeof value === "string" &&
+          value.indexOf("richtext") !== -1
+        ) {
+          const v = JSON.parse(value);
+          if (v) {
+            const t = v.type;
+            const name = v.name;
+            console.log(t.name);
+            const fieldValue = v.fieldValue;
+            if (
+              typeof fieldValue === "string" &&
+              fieldValue.indexOf("<") !== -1
+            ) {
+              await lintRichText(fieldValue);
+            }
           }
         }
       }
     }
-  }
 
-  const children = item.children;
-  if (children && Array.isArray(children)) {
-    for (const child of children) {
-      await lintItem(url, token, project, child, projectInfo);
+    const children = item.children;
+    if (children && Array.isArray(children)) {
+      for (const child of children) {
+        console.log("processing child", child);
+        await lintItem(url, token, project, child, projectInfo);
+      }
     }
   }
 }
