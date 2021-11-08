@@ -114,14 +114,14 @@ async function run() {
     const token = core.getInput("token");
     const project = core.getInput("project");
 
-    const projectInfo = await getProject(url, token, project);
+    //const projectInfo = await getProject(url, token, project);
     const projectTree = await getProjectTree(url, token, project);
 
-    if (projectTree && Array.isArray(projectTree) && projectInfo) {
+    if (projectTree && Array.isArray(projectTree)) {
       for (const projectLeaf of projectTree) {
         const items = getItemsFromProjectTree(projectLeaf);
         for (const item of items) {
-          await lintItem(url, token, project, item, projectInfo);
+          await lintItem(url, token, project, item, projectTree, projectInfo);
         }
       }
     }
@@ -130,10 +130,21 @@ async function run() {
   }
 }
 
-function validateItem(project, item, itemRef) {
-  core.info(
-    `Internal item ref not validated yet: ${project} ${item}: ${itemRef}`
-  );
+function validateItem(project, item, itemRef, projectTree) {
+  const itemRefs =
+    Array.isArray(projectTree) &&
+    projectTree
+      .map((projectLeaf) => getItemsFromProjectTree(projectLeaf))
+      .flat()
+      .map((item) => item.itemRef)
+      .filter((itemRef) => typeof itemRef === "string")
+      .map((itemRef) => itemRef + "");
+
+  if (!itemRefs.includes(itemRef)) {
+    core.setFailed(
+      `Internal item ref not found: ${project} ${item}: ${itemRef}`
+    );
+  }
 }
 
 async function validateUrl(project, item, url) {
@@ -163,7 +174,7 @@ async function validateUrl(project, item, url) {
   }
 }
 
-async function lintRichText(project, item, richText) {
+async function lintRichText(project, item, richText, projectTree) {
   if (richText === undefined || richText === "") {
     return;
   }
@@ -208,11 +219,11 @@ async function lintRichText(project, item, richText) {
   }
 
   for (const itemRef of itemRefs) {
-    validateItem(project, item, itemRef);
+    validateItem(project, item, itemRef, projectTree);
   }
 }
 
-async function lintItem(url, token, project, item, projectInfo) {
+async function lintItem(url, token, project, item, projectTree) {
   if (item === undefined || item.itemRef === undefined) {
     return;
   }
@@ -226,12 +237,12 @@ async function lintItem(url, token, project, item, projectInfo) {
     Array.isArray(projectItem.fieldValList.fieldVal)
   ) {
     for (const field of projectItem.fieldValList.fieldVal) {
-      await lintField(project, itemRef, field, projectInfo);
+      await lintField(project, itemRef, field, projectTree);
     }
   }
 }
 
-async function lintField(project, itemRef, field, projectInfo) {
+async function lintField(project, itemRef, field, projectTree) {
   const fieldType = field.fieldType;
   const value = field.value;
 
@@ -242,16 +253,14 @@ async function lintField(project, itemRef, field, projectInfo) {
       j.fieldValue !== undefined &&
       typeof j.fieldValue === "string"
     ) {
-      await lintRichText(project, itemRef, j.fieldValue);
+      await lintRichText(project, itemRef, j.fieldValue, projectTree);
     }
   } else if (
     fieldType === "richtext" &&
     value !== undefined &&
     typeof value === "string"
   ) {
-    await lintRichText(project, itemRef, value);
-  } else {
-    //core.info(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
+    await lintRichText(project, itemRef, value, projectTree);
   }
 }
 
