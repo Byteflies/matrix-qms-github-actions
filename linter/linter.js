@@ -174,6 +174,7 @@ async function lintItem(url, token, project, item, projectInfo) {
         if (v) {
           const t = v.type;
           const name = v.name;
+          console.log(t.name);
           const fieldValue = v.fieldValue;
           if (
             typeof fieldValue === "string" &&
