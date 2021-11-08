@@ -137,7 +137,7 @@ async function validateUrl(project, item, url) {
   try {
     const axiosConfig = {
       headers:
-        token !== undefined && token !== ""
+        token !== undefined && token !== "" && url.indexOf(baseURL) !== -1
           ? {
               Authorization: `Token ${token}`,
             }
