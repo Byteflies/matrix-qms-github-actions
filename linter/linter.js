@@ -171,7 +171,6 @@ async function lintRichText(project, item, richText) {
   const images = [];
   const anchors = [];
   const itemRefs = [];
-  const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/g;
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
@@ -182,15 +181,12 @@ async function lintRichText(project, item, richText) {
       }
     },
     ontext(text) {
-      const matches = regex.exec(text);
-      if (matches !== undefined && matches !== null) {
-        core.info(`${project} ${item} text: ${text} : matches ${matches}`);
-
-        for (const match of matches) {
-          const matchTrimmed = match.trim();
-          if (matchTrimmed.length > 0) {
-            itemRefs.push(matchTrimmed);
-          }
+      const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/g;
+      var matches = [];
+      while ((matches = regex.exec(text)) !== null) {
+        const matchTrimmed = matches[0].trim();
+        if (matchTrimmed.length > 0) {
+          itemRefs.push(matchTrimmed);
         }
       }
     },
