@@ -184,9 +184,10 @@ async function lintRichText(project, item, richText) {
     ontext(text) {
       const matches = regex.exec(text);
       if (matches !== undefined && matches !== null) {
+        core.info(`${project} ${item} text: ${text} : matches ${matches}`);
+
         for (const match of matches) {
           const matchTrimmed = match.trim();
-          core.info(`${project} ${item} text: ${text} : match ${matchTrimmed}`);
           if (matchTrimmed.length > 0) {
             itemRefs.push(matchTrimmed);
           }
