@@ -22,7 +22,8 @@ async function getProject(baseURL, token, project) {
 
     core.info(`GET ${baseURL}/rest/1/${project}`);
 
-    await instance.get(`${project}`);
+    const resp = await instance.get(`${project}`);
+    return resp.data;
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -47,7 +48,8 @@ async function getProjectTree(baseURL, token, project) {
 
     core.info(`GET ${baseURL}/rest/1/${project}/tree`);
 
-    await instance.get(`${project}/tree`);
+    const resp = await instance.get(`${project}/tree`);
+    return resp.data;
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -73,7 +75,8 @@ async function getProjectItem(baseURL, token, project, item) {
 
     core.info(`GET ${baseURL}/rest/1/${project}/item/${item}`);
 
-    await instance.get(`${project}/item/${item}`);
+    const resp = await instance.get(`${project}/item/${item}`);
+    return resp.data;
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -86,9 +89,9 @@ async function run() {
     const project = core.getInput("project");
 
     const projectInfo = await getProject(url, token, project);
-    console.log(projectInfo);
+    console.log("project info", projectInfo);
     const projectTree = await getProjectTree(url, token, project);
-    console.log(projectTree);
+    console.log("project tree", projectTree);
 
     if (projectTree && Array.isArray(projectTree) && projectInfo) {
       for (const projectLeaf of projectTree) {
