@@ -121,7 +121,7 @@ async function run() {
       for (const projectLeaf of projectTree) {
         const items = getItemsFromProjectTree(projectLeaf);
         for (const item of items) {
-          await lintItem(url, token, project, item, projectTree, projectInfo);
+          await lintItem(url, token, project, item, projectTree);
         }
       }
     }
