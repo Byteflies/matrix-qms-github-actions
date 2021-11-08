@@ -173,13 +173,16 @@ async function lintRichText(project, item, richText) {
   parser.write(richText);
   parser.end();
 
+  core.info(`images: ${JSON.stringify(images)}`);
+  core.info(`anchors: ${JSON.stringify(anchors)}`);
+
   for (const image of images) {
-    if (image.src) {
+    if (image.src !== undefined && typeof image.src === "string") {
       await validateUrl(project, item, image.src);
     }
   }
   for (const anchor of anchors) {
-    if (anchor.href) {
+    if (anchor.href !== undefined && typeof anchor.href === "string") {
       await validateUrl(project, item, anchor.href);
     }
   }
