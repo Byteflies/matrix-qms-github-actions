@@ -162,6 +162,7 @@ async function validateUrl(project, item, url) {
     core.setFailed(`Invalid url: ${project} ${item} ${url}: ${error.message}`);
   }
 }
+
 async function lintRichText(project, item, richText) {
   if (richText === undefined || richText === "") {
     return;
@@ -170,9 +171,7 @@ async function lintRichText(project, item, richText) {
   const images = [];
   const anchors = [];
   const itemRefs = [];
-  const reg = new RegExp(
-    "(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)"
-  ).compile();
+  const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/;
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
@@ -183,14 +182,13 @@ async function lintRichText(project, item, richText) {
       }
     },
     ontext(text) {
-      core.info(`${project} ${item}: ${text}`);
-
-      const matches = reg.exec(text);
+      const matches = regex.exec(text);
       if (matches !== undefined && matches !== null) {
         for (const match of matches) {
-          const item = match.trim();
-          if (item.length > 0) {
-            itemRefs.push(item);
+          const matchTrimmed = match.trim();
+          core.info(`${project} ${item} text: ${text} : match ${matchTrimmed}`);
+          if (matchTrimmed.length > 0) {
+            itemRefs.push(matchTrimmed);
           }
         }
       }
@@ -220,8 +218,6 @@ async function lintRichText(project, item, richText) {
 async function lintItem(url, token, project, item, projectInfo) {
   if (item === undefined || item.itemRef === undefined) {
     return;
-    // } else if (item.isFolder === undefined || item.isFolder === 1) {
-    //   return;
   }
 
   const itemRef = item.itemRef;
@@ -233,12 +229,12 @@ async function lintItem(url, token, project, item, projectInfo) {
     Array.isArray(projectItem.fieldValList.fieldVal)
   ) {
     for (const field of projectItem.fieldValList.fieldVal) {
-      await lintField(project, itemRef, field);
+      await lintField(project, itemRef, field, projectInfo);
     }
   }
 }
 
-async function lintField(project, itemRef, field) {
+async function lintField(project, itemRef, field, projectInfo) {
   const fieldType = field.fieldType;
   const value = field.value;
 
