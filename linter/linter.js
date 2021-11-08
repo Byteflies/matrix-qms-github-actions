@@ -137,6 +137,7 @@ async function validateUrl(project, item, url) {
   try {
     const axiosConfig = {
       headers:
+        // When this is an internal link, attach the matrix token
         token !== undefined && token !== "" && url.indexOf(baseURL) !== -1
           ? {
               Authorization: `Token ${token}`,
@@ -161,6 +162,7 @@ async function lintRichText(project, item, richText) {
 
   const images = [];
   const anchors = [];
+  const allText = [];
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
@@ -170,14 +172,15 @@ async function lintRichText(project, item, richText) {
         anchors.push(attributes);
       }
     },
-    ontext(text) {},
+    ontext(text) {
+      if (text.indexOf("#") !== -1) {
+        allText.push(text);
+      }
+    },
     onclosetag(tagname) {},
   });
   parser.write(richText);
   parser.end();
-
-  core.info(`images: ${JSON.stringify(images)}`);
-  core.info(`anchors: ${JSON.stringify(anchors)}`);
 
   for (const image of images) {
     if (image.src !== undefined && typeof image.src === "string") {
@@ -188,6 +191,10 @@ async function lintRichText(project, item, richText) {
     if (anchor.href !== undefined && typeof anchor.href === "string") {
       await validateUrl(project, item, anchor.href);
     }
+  }
+
+  for (const text of allText) {
+    core.info(`Internal link not validated yet: ${text}`);
   }
 }
 
