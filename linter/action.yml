@@ -1,0 +1,16 @@
+name: "Matrix linter"
+description: "Linter for a matrix project"
+inputs:
+  url:
+    description: "Matrix url. Should not include /rest/api/1"
+    required: true
+  token:
+    description: "Matrix API token"
+    required: false
+  project:
+    description: "Project shortcode"
+    required: true
+
+runs:
+  using: "node12"
+  main: "linter.js"
