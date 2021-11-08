@@ -218,8 +218,8 @@ async function lintRichText(project, item, richText) {
 async function lintItem(url, token, project, item, projectInfo) {
   if (item === undefined || item.itemRef === undefined) {
     return;
-  } else if (item.isFolder === undefined || item.isFolder === 1) {
-    return;
+  // } else if (item.isFolder === undefined || item.isFolder === 1) {
+  //   return;
   }
 
   const itemRef = item.itemRef;
