@@ -90,7 +90,7 @@ function getItemsFromProjectTree(item) {
   }
 
   if (item.folder !== undefined) {
-    const children = getItemsFromProjectTree(folder);
+    const children = getItemsFromProjectTree(item.folder);
     for (const c of children) {
       result.push(c);
     }
