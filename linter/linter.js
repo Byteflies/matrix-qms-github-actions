@@ -144,6 +144,8 @@ function validateItem(project, item, itemRef, projectTree) {
     core.setFailed(
       `Internal item ref not found: ${project} ${item}: ${itemRef}`
     );
+  } else {
+    core.info(`${project} ${item}: ${itemRef} checked`);
   }
 }
 
