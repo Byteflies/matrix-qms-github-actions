@@ -171,7 +171,7 @@ async function lintRichText(project, item, richText) {
   const images = [];
   const anchors = [];
   const itemRefs = [];
-  const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/;
+  const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/g;
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
