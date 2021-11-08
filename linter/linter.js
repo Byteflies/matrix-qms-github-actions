@@ -130,24 +130,59 @@ async function run() {
   }
 }
 
+async function validateUrl(project, item, url) {
+  const baseURL = core.getInput("url");
+  const token = core.getInput("token");
+
+  try {
+    const axiosConfig = {
+      headers:
+        token !== undefined && token !== ""
+          ? {
+              Authorization: `Token ${token}`,
+            }
+          : undefined,
+    };
+
+    const instance = axios.create(axiosConfig);
+    const resp = await instance.get(url);
+    return resp.data;
+  } catch (error) {
+    core.setFailed(`Invalid url: ${project} ${item} ${url}: ${error.message}`);
+  }
+}
 async function lintRichText(project, item, richText) {
   if (richText === undefined || richText === "") {
     return;
   }
 
+  const images = [];
+  const anchors = [];
+
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
-      core.info(`html onopentag ${name} ${JSON.stringify(attributes)}`);
+      if (name === "img") {
+        images.push(name);
+      } else if (name === "a") {
+        anchors.push(name);
+      }
     },
-    ontext(text) {
-      core.info(`html ontext ${text}`);
-    },
-    onclosetag(tagname) {
-      core.info(`html onclosetag ${tagname}`);
-    },
+    ontext(text) {},
+    onclosetag(tagname) {},
   });
   parser.write(richText);
   parser.end();
+
+  for (const image of images) {
+    if (image.src) {
+      await validateUrl(project, item, image.src);
+    }
+  }
+  for (const anchor of anchors) {
+    if (anchor.href) {
+      await validateUrl(project, item, anchor.href);
+    }
+  }
 }
 
 async function lintItem(url, token, project, item, projectInfo) {
