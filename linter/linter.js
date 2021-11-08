@@ -134,6 +134,10 @@ async function run() {
 }
 
 async function lintRichText(richText) {
+  if (richText === undefined || richText === "") {
+    return;
+  }
+
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
       console.log("onopentag", name, attributes);
@@ -176,11 +180,7 @@ async function lintItem(url, token, project, item, projectInfo) {
     return;
   }
 
-  console.log("linting item", project, JSON.stringify(item));
-
   const itemRef = item.itemRef;
-  const title = item.title;
-  const type = item.type;
 
   const projectItem = await getProjectItem(url, token, project, itemRef);
   if (
@@ -192,38 +192,30 @@ async function lintItem(url, token, project, item, projectInfo) {
       const fieldName = field.fieldName;
       const fieldType = field.fieldType;
       const value = field.value;
-      const id = field.id;
-
-      console.log("field", JSON.stringify(field));
 
       if (
-        value &&
-        typeof value === "string" &&
-        value.indexOf("richtext") !== -1
+        fieldType === "richtext" &&
+        value !== undefined &&
+        typeof value === "string"
       ) {
-        const v = JSON.parse(value);
-        if (v) {
-          const t = v.type;
-          const name = v.name;
-          console.log(t.name);
-          const fieldValue = v.fieldValue;
-          if (
-            typeof fieldValue === "string" &&
-            fieldValue.indexOf("<") !== -1
-          ) {
-            await lintRichText(fieldValue);
-          }
-        }
+        await lintRichText(value);
+      } else {
+        console.log(
+          "ignoring item field",
+          project,
+          itemRef,
+          fieldName,
+          JSON.stringify(field)
+        );
       }
     }
-
-    // const children = item.children;
-    // if (children && Array.isArray(children)) {
-    //   for (const child of children) {
-    //     console.log("processing child", child);
-    //     await lintItem(url, token, project, child, projectInfo);
-    //   }
-    // }
+  } else {
+    console.log(
+      "item does not have fields",
+      project,
+      itemRef,
+      JSON.stringify(item)
+    );
   }
 }
 
