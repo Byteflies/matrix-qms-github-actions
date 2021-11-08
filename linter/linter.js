@@ -140,13 +140,13 @@ async function lintRichText(richText) {
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
-      core.info("html onopentag", name, attributes);
+      core.info(`html onopentag ${name} ${attributes}`);
     },
     ontext(text) {
-      core.info("html ontext", text);
+      core.info(`html ontext ${text}`);
     },
     onclosetag(tagname) {
-      core.info("html onclosetag", tagname);
+      core.info(`html onclosetag ${tagname}`);
     },
   });
   parser.write(richText);
@@ -181,13 +181,6 @@ async function lintItem(url, token, project, item, projectInfo) {
         await lintRichText(value);
       }
     }
-  } else {
-    core.debug(
-      "item does not have fields",
-      project,
-      itemRef,
-      JSON.stringify(item)
-    );
   }
 }
 
