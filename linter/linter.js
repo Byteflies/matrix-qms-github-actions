@@ -114,19 +114,40 @@ async function run() {
     const token = core.getInput("token");
     const project = core.getInput("project");
 
-    const projectInfo = await getProject(url, token, project);
+    //const projectInfo = await getProject(url, token, project);
     const projectTree = await getProjectTree(url, token, project);
 
-    if (projectTree && Array.isArray(projectTree) && projectInfo) {
+    if (projectTree && Array.isArray(projectTree)) {
       for (const projectLeaf of projectTree) {
         const items = getItemsFromProjectTree(projectLeaf);
         for (const item of items) {
-          await lintItem(url, token, project, item, projectInfo);
+          await lintItem(url, token, project, item, projectTree);
         }
       }
     }
   } catch (error) {
     core.setFailed(error.message);
+  }
+}
+
+function validateItem(project, item, itemRef, projectTree) {
+  const itemRefs =
+    Array.isArray(projectTree) &&
+    projectTree
+      .map((projectLeaf) => getItemsFromProjectTree(projectLeaf))
+      .flat()
+      .map((item) => item.itemRef)
+      .filter((itemRef) => typeof itemRef === "string")
+      .map((itemRef) => itemRef + "");
+
+  if (itemRef.indexOf("#") !== -1) {
+    core.info(`${project} ${item}: ${itemRef} not checked`);
+  } else if (!itemRefs.includes(itemRef)) {
+    core.setFailed(
+      `Internal item ref not found: ${project} ${item}: ${itemRef}`
+    );
+  } else {
+    core.info(`${project} ${item}: ${itemRef} checked`);
   }
 }
 
@@ -156,14 +177,15 @@ async function validateUrl(project, item, url) {
     core.setFailed(`Invalid url: ${project} ${item} ${url}: ${error.message}`);
   }
 }
-async function lintRichText(project, item, richText) {
+
+async function lintRichText(project, item, richText, projectTree) {
   if (richText === undefined || richText === "") {
     return;
   }
 
   const images = [];
   const anchors = [];
-  const allText = [];
+  const itemRefs = [];
 
   const parser = new htmlparser2.Parser({
     onopentag(name, attributes) {
@@ -174,8 +196,22 @@ async function lintRichText(project, item, richText) {
       }
     },
     ontext(text) {
-      if (text.indexOf("#") !== -1) {
-        allText.push(text);
+      const regex = /(DOC|VER|SIGN|REQ|RISK|SPEC|VER|VAL|XTC)-([0-9]+)/g;
+      const regex2 = /#[A-Za-z].+#/g;
+
+      var matches = [];
+      while ((matches = regex.exec(text)) !== null) {
+        const matchTrimmed = matches[0].trim();
+        if (matchTrimmed.length > 0) {
+          itemRefs.push(matchTrimmed);
+        }
+      }
+
+      while ((matches = regex2.exec(text)) !== null) {
+        const matchTrimmed = matches[0].replace(/#/g, "").trim();
+        if (matchTrimmed.length > 0) {
+          itemRefs.push(matchTrimmed);
+        }
       }
     },
     onclosetag(tagname) {},
@@ -188,21 +224,20 @@ async function lintRichText(project, item, richText) {
       await validateUrl(project, item, image.src);
     }
   }
+
   for (const anchor of anchors) {
     if (anchor.href !== undefined && typeof anchor.href === "string") {
       await validateUrl(project, item, anchor.href);
     }
   }
 
-  for (const text of allText) {
-    core.info(`Internal link not validated yet: ${text}`);
+  for (const itemRef of itemRefs) {
+    validateItem(project, item, itemRef, projectTree);
   }
 }
 
-async function lintItem(url, token, project, item, projectInfo) {
+async function lintItem(url, token, project, item, projectTree) {
   if (item === undefined || item.itemRef === undefined) {
-    return;
-  } else if (item.isFolder === undefined || item.isFolder === 1) {
     return;
   }
 
@@ -215,12 +250,12 @@ async function lintItem(url, token, project, item, projectInfo) {
     Array.isArray(projectItem.fieldValList.fieldVal)
   ) {
     for (const field of projectItem.fieldValList.fieldVal) {
-      await lintField(project, itemRef, field);
+      await lintField(project, itemRef, field, projectTree);
     }
   }
 }
 
-async function lintField(project, itemRef, field) {
+async function lintField(project, itemRef, field, projectTree) {
   const fieldType = field.fieldType;
   const value = field.value;
 
@@ -231,16 +266,14 @@ async function lintField(project, itemRef, field) {
       j.fieldValue !== undefined &&
       typeof j.fieldValue === "string"
     ) {
-      await lintRichText(project, itemRef, j.fieldValue);
+      await lintRichText(project, itemRef, j.fieldValue, projectTree);
     }
   } else if (
     fieldType === "richtext" &&
     value !== undefined &&
     typeof value === "string"
   ) {
-    await lintRichText(project, itemRef, value);
-  } else {
-    core.debug(`ignoring ${project} ${itemRef} ${JSON.stringify(field)}`);
+    await lintRichText(project, itemRef, value, projectTree);
   }
 }
 
